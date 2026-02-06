@@ -1,36 +1,88 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Tarefas Casa (V1)
 
-## Getting Started
+Aplicacao simples para registrar tarefas recorrentes em casa, com historico de quem fez e quando foi feito. Nesta V1, nao ha login. As tarefas nao somem quando concluidas, exceto se marcadas como `one and done`.
 
-First, run the development server:
+## Escopo da V1
+
+- Criar tarefas
+- Marcar tarefa como concluida por uma pessoa
+- Visualizar ultima pessoa e data de conclusao
+- Flag `one and done` que arquiva a tarefa ao concluir
+
+## Stack
+
+- Next.js (App Router)
+- Supabase (Postgres)
+- Tailwind CSS
+
+## Setup (Passo a passo)
+
+1) Instale dependencias
+
+```bash
+npm install
+```
+
+2) Crie um projeto no Supabase
+
+3) Rode o SQL do schema
+
+Abra o SQL editor do Supabase e execute o conteudo de `supabase/schema.sql`.
+
+4) Configure variaveis de ambiente
+
+Crie um arquivo `.env.local` na raiz com:
+
+```bash
+SUPABASE_URL=coloque_sua_url
+SUPABASE_SERVICE_ROLE_KEY=coloque_sua_service_role_key
+```
+
+5) (Temporario) Desative RLS
+
+Para esta V1 sem login, a forma mais rapida e desativar o RLS das tabelas `tasks` e `task_completions`. Depois, quando entrar login, criamos politicas.
+
+6) Rode o projeto
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abra `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Comando para saber onde voce esta no projeto
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+pwd
+git status -sb
+```
 
-## Learn More
+## Estrutura basica
 
-To learn more about Next.js, take a look at the following resources:
+- `src/app/page.tsx`: UI principal
+- `src/app/api/tasks`: endpoints da API
+- `src/lib/supabaseServer.ts`: cliente Supabase server-side
+- `supabase/schema.sql`: schema do banco
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Processo de trabalho (Planner -> Developer -> Reviewer)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Este projeto segue um fluxo leve de agentes, com arquivos que definem responsabilidades e templates.
 
-## Deploy on Vercel
+- Planner: `/Users/devmaktub/Desktop/Programas/Codex/tarefas-casa/agents/planner.md`
+- Developer: `/Users/devmaktub/Desktop/Programas/Codex/tarefas-casa/agents/developer.md`
+- Reviewer: `/Users/devmaktub/Desktop/Programas/Codex/tarefas-casa/agents/reviewer.md`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Processo detalhado:
+- `/Users/devmaktub/Desktop/Programas/Codex/tarefas-casa/docs/process.md`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Documentacao adicional
+
+- Ideia geral: `/Users/devmaktub/Desktop/Programas/Codex/tarefas-casa/docs/idea.md`
+- Padroes do projeto: `/Users/devmaktub/Desktop/Programas/Codex/tarefas-casa/docs/architecture.md`
+- Onde ficam os arquivos importantes: `/Users/devmaktub/Desktop/Programas/Codex/tarefas-casa/docs/where.md`
+
+## Proximos passos (quando quiser)
+
+- Autenticacao e perfis por usuario
+- RLS com politicas de acesso
+- Lembretes e automacoes
