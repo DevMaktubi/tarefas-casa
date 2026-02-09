@@ -8,12 +8,16 @@ Aplicacao simples para registrar tarefas recorrentes em casa, com historico de q
 - Marcar tarefa como concluida por uma pessoa
 - Visualizar ultima pessoa e data de conclusao
 - Flag `one and done` que arquiva a tarefa ao concluir
+- Recorrencia diaria/semanal/mensal com dias especificos
+- Filtros por tipo de recorrencia
+- Participantes armazenados no banco
 
 ## Stack
 
 - Next.js (App Router)
 - Supabase (Postgres)
 - Tailwind CSS
+- ApexCharts
 
 ## Setup (Passo a passo)
 

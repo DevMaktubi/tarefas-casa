@@ -8,9 +8,9 @@ export async function POST(
   const supabase = getSupabaseAdmin();
   const { id } = await params;
   const body = await request.json();
-  const completedBy = String(body?.completedBy || '').trim();
+  const participantId = String(body?.participantId || '').trim();
 
-  if (!completedBy) {
+  if (!participantId) {
     return NextResponse.json(
       { error: 'Informe quem concluiu a tarefa.' },
       { status: 400 }
@@ -37,9 +37,26 @@ export async function POST(
     );
   }
 
+  const { data: participant, error: participantError } = await supabase
+    .from('participants')
+    .select('id, name')
+    .eq('id', participantId)
+    .single();
+
+  if (participantError || !participant) {
+    return NextResponse.json(
+      { error: 'Participante nao encontrado.' },
+      { status: 404 }
+    );
+  }
+
   const { error: completionError } = await supabase
     .from('task_completions')
-    .insert({ task_id: id, completed_by: completedBy });
+    .insert({
+      task_id: id,
+      completed_by: participant.name,
+      participant_id: participant.id,
+    });
 
   if (completionError) {
     return NextResponse.json(
