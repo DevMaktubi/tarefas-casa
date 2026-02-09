@@ -52,7 +52,7 @@ export default function OverviewPage() {
     ? summary?.participants.map(
         (p) => participantColors[p.name] || '#94a3b8'
       ) ?? []
-    : ['#e2e8f0'];
+    : ['#d4d4d8'];
 
   const donutOptions = {
     labels: donutLabels,
@@ -62,7 +62,7 @@ export default function OverviewPage() {
       custom: ({ seriesIndex }: { seriesIndex: number }) => {
         if (!summary) return '';
         if (!donutHasData) {
-          return '<div class=\"px-3 py-2\">Sem dados no periodo</div>';
+          return '<div class="px-3 py-2">Sem dados no periodo</div>';
         }
         const participant = summary.participants[seriesIndex];
         if (!participant) return '';
@@ -93,14 +93,19 @@ export default function OverviewPage() {
   const barOptions = {
     chart: { toolbar: { show: false }, stacked: false },
     plotOptions: {
-      bar: { columnWidth: '55%' },
+      bar: { columnWidth: '55%', borderRadius: 5 },
     },
+    grid: { borderColor: '#e4e4e7' },
     colors: barSeries.map(
       (series) => participantColors[series.name] || '#94a3b8'
     ),
     legend: { position: 'bottom' as const },
     xaxis: {
       categories: summary?.days.map((day) => day.label) ?? [],
+      labels: { style: { colors: '#71717a' } },
+    },
+    yaxis: {
+      labels: { style: { colors: '#71717a' } },
     },
     tooltip: {
       custom: ({
@@ -130,72 +135,68 @@ export default function OverviewPage() {
   );
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-10">
-      <header className="flex flex-col gap-3">
-        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
-          Casa em dia
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight">Visao geral</h1>
-        <p className="max-w-2xl text-base text-slate-600">
-          Uma visao rapida do que precisa ser feito e de quem esta mantendo a
-          casa em dia.
-        </p>
+    <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-5">
+      <header className="flex flex-wrap items-end justify-between gap-3 rounded-2xl border border-zinc-200 bg-white px-5 py-5">
+        <div>
+          <h1 className="text-[40px] font-semibold leading-none text-zinc-900">
+            Dashboard
+          </h1>
+          <p className="mt-2 text-sm text-zinc-500">
+            Planeje, priorize e acompanhe a rotina da casa com clareza.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/tarefas"
+            className="rounded-full bg-emerald-700 px-5 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800"
+          >
+            Abrir tarefas
+          </Link>
+          <button
+            type="button"
+            className="rounded-full border border-emerald-700 px-5 py-2 text-sm font-semibold text-emerald-800"
+          >
+            Visao de dados
+          </button>
+        </div>
       </header>
 
-      <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="grid gap-4 rounded-3xl bg-white p-6 shadow-lg shadow-slate-200/60">
-          <h2 className="text-lg font-semibold">Atalhos rapidos</h2>
-          <p className="text-sm text-slate-500">
-            Acesse o que importa sem abrir menus extras.
+      <section className="grid gap-3 md:grid-cols-4">
+        <div className="rounded-2xl border border-emerald-900/30 bg-[linear-gradient(145deg,#17633f_0%,#1f8554_100%)] p-5 text-white">
+          <p className="text-sm text-emerald-100">Total no periodo</p>
+          <p className="mt-1 text-5xl font-semibold leading-none">
+            {summary?.total ?? 0}
           </p>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Link
-              href="/tarefas"
-              className="group rounded-2xl border border-slate-200 px-4 py-4 text-left transition hover:border-slate-300 hover:bg-slate-50"
-            >
-              <p className="text-sm font-semibold text-slate-900">Tarefas</p>
-              <p className="text-xs text-slate-500">
-                Crie e conclua atividades do dia.
-              </p>
-            </Link>
-            <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-4 text-left">
-              <p className="text-sm font-semibold text-slate-900">
-                Proximos passos
-              </p>
-              <p className="text-xs text-slate-500">
-                Espaco reservado para novos atalhos.
-              </p>
-            </div>
-          </div>
         </div>
-
-        <div className="grid gap-4 rounded-3xl bg-slate-900 p-6 text-white shadow-lg shadow-slate-200/60">
-          <h2 className="text-lg font-semibold">Resumo da casa</h2>
-          <p className="text-sm text-slate-200">
-            Em breve, voce vai ver aqui um resumo das tarefas em andamento e
-            quem concluiu mais atividades.
+        <div className="rounded-2xl border border-zinc-200 bg-white p-5">
+          <p className="text-sm text-zinc-500">Participantes ativos</p>
+          <p className="mt-1 text-5xl font-semibold leading-none text-zinc-900">
+            {summary?.participants.length ?? 0}
           </p>
-          <div className="grid gap-3 rounded-2xl bg-white/10 p-4">
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-300">
-              V1
-            </p>
-            <p className="text-sm">
-              Quer adicionar mais visoes? A sidebar ja esta pronta para novas
-              rotas.
-            </p>
-          </div>
+        </div>
+        <div className="rounded-2xl border border-zinc-200 bg-white p-5">
+          <p className="text-sm text-zinc-500">Dias monitorados</p>
+          <p className="mt-1 text-5xl font-semibold leading-none text-zinc-900">
+            {summaryPeriod === 'weekly' ? 7 : 30}
+          </p>
+        </div>
+        <div className="rounded-2xl border border-zinc-200 bg-white p-5">
+          <p className="text-sm text-zinc-500">Maior streak atual</p>
+          <p className="mt-1 text-5xl font-semibold leading-none text-zinc-900">
+            {streakRanking[0]?.current_streak ?? 0}
+          </p>
         </div>
       </section>
 
-      <section className="grid gap-6 rounded-3xl bg-white p-6 shadow-lg shadow-slate-200/60">
+      <section className="grid gap-4 rounded-2xl border border-zinc-200 bg-white p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold">Resumo</h2>
-            <p className="text-sm text-slate-500">
+            <h2 className="text-2xl font-semibold text-zinc-900">Resumo</h2>
+            <p className="text-sm text-zinc-500">
               {summaryPeriod === 'weekly' ? 'Ultimos 7 dias' : 'Ultimos 30 dias'}
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="inline-flex rounded-full border border-zinc-200 bg-zinc-100 p-1">
             {['weekly', 'monthly'].map((period) => (
               <button
                 key={period}
@@ -203,10 +204,10 @@ export default function OverviewPage() {
                 onClick={() =>
                   setSummaryPeriod(period as typeof summaryPeriod)
                 }
-                className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-wide ${
+                className={`rounded-full px-5 py-1.5 text-xs font-semibold uppercase tracking-wide transition ${
                   summaryPeriod === period
-                    ? 'border-slate-900 bg-slate-900 text-white'
-                    : 'border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-900'
+                    ? 'bg-zinc-900 text-white'
+                    : 'text-zinc-500 hover:text-zinc-800'
                 }`}
               >
                 {period === 'weekly' ? 'Semanal' : 'Mensal'}
@@ -216,67 +217,60 @@ export default function OverviewPage() {
         </div>
 
         {summaryLoading ? (
-          <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-6 text-sm text-slate-500">
+          <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-8 text-sm text-zinc-500">
             Carregando resumo...
           </div>
         ) : !summary ? (
-          <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-6 text-sm text-slate-500">
+          <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-8 text-sm text-zinc-500">
             Nenhum dado disponivel.
           </div>
         ) : (
-          <div className="grid gap-6">
+          <div className="grid gap-4">
             {summaryPeriod !== 'monthly' ? (
-              <div className="grid gap-6">
-                <div className="grid gap-6 lg:grid-cols-2">
-                  <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                    <p className="text-sm font-semibold text-slate-700">
-                      Total no periodo
-                    </p>
-                    <p className="text-3xl font-semibold text-slate-900">
-                      {summary.total}
-                    </p>
-                    <div className="mt-4 flex w-full items-center justify-center">
+              <div className="grid gap-4">
+                <div className="grid gap-4 xl:grid-cols-2">
+                  <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+                    <p className="text-base font-semibold text-zinc-900">Donut por participante</p>
+                    <div className="mt-3 flex w-full items-center justify-center">
                       <ApexChart
                         type="donut"
                         width="100%"
-                        height={260}
+                        height={280}
                         series={donutSeries}
                         options={donutOptions}
                       />
                     </div>
                   </div>
-                  <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                    <p className="text-sm font-semibold text-slate-700">
-                      Conclusoes por dia
-                    </p>
-                    <div className="mt-4 w-full">
+
+                  <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+                    <p className="text-base font-semibold text-zinc-900">Conclusoes por dia</p>
+                    <div className="mt-3 w-full">
                       <ApexChart
                         type="bar"
                         width="100%"
-                        height={260}
+                        height={280}
                         series={barSeries}
                         options={barOptions}
                       />
                     </div>
                   </div>
                 </div>
-                <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                  <p className="text-sm font-semibold text-slate-700">
-                    Streak atual por participante
-                  </p>
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+
+                <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+                  <p className="text-base font-semibold text-zinc-900">Streak atual por participante</p>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
                     {streakRanking.map((participant) => (
                       <div
                         key={participant.id}
-                        className="rounded-xl border border-slate-200 bg-white px-4 py-3"
+                        className="rounded-xl border border-zinc-200 bg-white px-4 py-3"
                       >
-                        <p className="text-sm font-semibold text-slate-800">
+                        <p className="text-sm font-semibold text-zinc-800">
                           {participant.name}
                         </p>
-                        <p className="text-2xl font-semibold text-slate-900">
+                        <p className="text-3xl font-semibold leading-none text-zinc-900">
                           {participant.current_streak}
                         </p>
-                        <p className="text-xs text-slate-500">
+                        <p className="mt-1 text-xs text-zinc-500">
                           dia(s) seguidos com ao menos 1 tarefa.
                         </p>
                       </div>
@@ -286,55 +280,48 @@ export default function OverviewPage() {
               </div>
             ) : (
               <>
-                <div className="flex flex-col items-start justify-center rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                  <p className="text-sm font-semibold text-slate-700">
-                    Conclusoes por dia
-                  </p>
-                  <div className="mt-4 w-full">
+                <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+                  <p className="text-base font-semibold text-zinc-900">Conclusoes por dia</p>
+                  <div className="mt-3 w-full">
                     <ApexChart
                       type="bar"
                       width="100%"
-                      height={260}
+                      height={280}
                       series={barSeries}
                       options={barOptions}
                     />
                   </div>
                 </div>
-                <div className="grid gap-6 lg:grid-cols-2">
-                  <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                    <p className="text-sm font-semibold text-slate-700">
-                      Total no periodo
-                    </p>
-                    <p className="text-3xl font-semibold text-slate-900">
-                      {summary.total}
-                    </p>
-                    <div className="mt-4 flex w-full items-center justify-center">
+
+                <div className="grid gap-4 xl:grid-cols-2">
+                  <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+                    <p className="text-base font-semibold text-zinc-900">Donut por participante</p>
+                    <div className="mt-3 flex w-full items-center justify-center">
                       <ApexChart
                         type="donut"
                         width="100%"
-                        height={260}
+                        height={280}
                         series={donutSeries}
                         options={donutOptions}
                       />
                     </div>
                   </div>
-                  <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                    <p className="text-sm font-semibold text-slate-700">
-                      Streak atual por participante
-                    </p>
-                    <div className="mt-4 grid gap-3">
+
+                  <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+                    <p className="text-base font-semibold text-zinc-900">Streak atual por participante</p>
+                    <div className="mt-3 grid gap-3">
                       {streakRanking.map((participant) => (
                         <div
                           key={participant.id}
-                          className="rounded-xl border border-slate-200 bg-white px-4 py-3"
+                          className="rounded-xl border border-zinc-200 bg-white px-4 py-3"
                         >
-                          <p className="text-sm font-semibold text-slate-800">
+                          <p className="text-sm font-semibold text-zinc-800">
                             {participant.name}
                           </p>
-                          <p className="text-2xl font-semibold text-slate-900">
+                          <p className="text-3xl font-semibold leading-none text-zinc-900">
                             {participant.current_streak}
                           </p>
-                          <p className="text-xs text-slate-500">
+                          <p className="mt-1 text-xs text-zinc-500">
                             dia(s) seguidos com ao menos 1 tarefa.
                           </p>
                         </div>
