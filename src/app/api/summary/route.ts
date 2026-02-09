@@ -5,6 +5,8 @@ const PERIOD_DAYS = {
   weekly: 7,
   monthly: 30,
 } as const;
+const APP_TIMEZONE = 'America/Sao_Paulo';
+export const dynamic = 'force-dynamic';
 
 type Period = keyof typeof PERIOD_DAYS;
 
@@ -17,6 +19,14 @@ type ParticipantSummary = {
   id: string;
   name: string;
   count: number;
+  current_streak: number;
+  tasks: SummaryTask[];
+};
+
+type DayParticipantSummary = {
+  id: string;
+  name: string;
+  count: number;
   tasks: SummaryTask[];
 };
 
@@ -25,27 +35,52 @@ type DaySummary = {
   label: string;
   count: number;
   tasks: SummaryTask[];
-  participants: ParticipantSummary[];
+  participants: DayParticipantSummary[];
 };
 
-function startOfDay(date: Date) {
-  const next = new Date(date);
-  next.setHours(0, 0, 0, 0);
-  return next;
+function formatDateKey(date: Date) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: APP_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
 }
 
-function formatDateKey(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+function addDaysToDateKey(dateKey: string, delta: number) {
+  const [year, month, day] = dateKey.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  date.setUTCDate(date.getUTCDate() + delta);
+  return date.toISOString().slice(0, 10);
+}
+
+function parseDateKey(dateKey: string) {
+  const [year, month, day] = dateKey.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1, day));
 }
 
 function formatLabel(date: Date) {
   return date.toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: '2-digit',
+    timeZone: APP_TIMEZONE,
   });
+}
+
+function getJoinedName(
+  value: { name: string } | { name: string }[] | null
+) {
+  if (!value) return null;
+  if (Array.isArray(value)) return value[0]?.name ?? null;
+  return value.name;
+}
+
+function getTaskTitle(
+  value: { title: string } | { title: string }[] | null
+) {
+  if (!value) return null;
+  if (Array.isArray(value)) return value[0]?.title ?? null;
+  return value.title;
 }
 
 export async function GET(request: Request) {
@@ -61,8 +96,10 @@ export async function GET(request: Request) {
   }
 
   const now = new Date();
-  const start = startOfDay(new Date(now));
-  start.setDate(start.getDate() - (PERIOD_DAYS[period] - 1));
+  const todayKey = formatDateKey(now);
+  const startKey = addDaysToDateKey(todayKey, -(PERIOD_DAYS[period] - 1));
+  const queryStart = new Date(now);
+  queryStart.setUTCDate(queryStart.getUTCDate() - (PERIOD_DAYS[period] + 2));
 
   const { data: participants, error: participantsError } = await supabase
     .from('participants')
@@ -79,7 +116,7 @@ export async function GET(request: Request) {
   const { data: completions, error: completionsError } = await supabase
     .from('task_completions')
     .select('completed_at, task_id, tasks(title), participant_id, participants(name)')
-    .gte('completed_at', start.toISOString())
+    .gte('completed_at', queryStart.toISOString())
     .lte('completed_at', now.toISOString())
     .order('completed_at', { ascending: true });
 
@@ -90,40 +127,60 @@ export async function GET(request: Request) {
     );
   }
 
+  const { data: allCompletions, error: allCompletionsError } = await supabase
+    .from('task_completions')
+    .select('completed_at, participant_id')
+    .not('participant_id', 'is', null)
+    .lte('completed_at', now.toISOString())
+    .order('completed_at', { ascending: true });
+
+  if (allCompletionsError) {
+    return NextResponse.json(
+      { error: allCompletionsError.message },
+      { status: 500 }
+    );
+  }
+
   const dayMap = new Map<string, DaySummary>();
   const participantMap = new Map<string, ParticipantSummary>();
+  const participantCompletionDays = new Map<string, Set<string>>();
 
   (participants || []).forEach((participant) => {
     participantMap.set(participant.id, {
       id: participant.id,
       name: participant.name,
       count: 0,
+      current_streak: 0,
       tasks: [],
     });
+    participantCompletionDays.set(participant.id, new Set<string>());
   });
 
-  const dayCursor = startOfDay(start);
   for (let i = 0; i < PERIOD_DAYS[period]; i += 1) {
-    const key = formatDateKey(dayCursor);
+    const key = addDaysToDateKey(startKey, i);
     dayMap.set(key, {
       date: key,
-      label: formatLabel(dayCursor),
+      label: formatLabel(parseDateKey(key)),
       count: 0,
       tasks: [],
       participants: [],
     });
-    dayCursor.setDate(dayCursor.getDate() + 1);
   }
 
   (completions || []).forEach((completion) => {
     const completedAt = new Date(completion.completed_at as string);
     const dayKey = formatDateKey(completedAt);
-    const taskTitle = (completion.tasks as { title: string } | null)?.title ||
-      'Tarefa';
+    const taskTitle = getTaskTitle(
+      completion.tasks as { title: string } | { title: string }[] | null
+    ) || 'Tarefa';
     const participantId = completion.participant_id as string | null;
     const participantName =
-      (completion.participants as { name: string } | null)?.name ||
-      'Desconhecido';
+      getJoinedName(
+        completion.participants as
+          | { name: string }
+          | { name: string }[]
+          | null
+      ) || 'Desconhecido';
 
     const dayEntry = dayMap.get(dayKey);
     if (dayEntry) {
@@ -145,7 +202,7 @@ export async function GET(request: Request) {
             name: participantName,
             count: 0,
             tasks: [],
-          } as ParticipantSummary);
+          } as DayParticipantSummary);
 
         dayParticipant.count += 1;
         const dayParticipantTask = dayParticipant.tasks.find(
@@ -174,6 +231,7 @@ export async function GET(request: Request) {
           id: participantId,
           name: participantName,
           count: 0,
+          current_streak: 0,
           tasks: [],
         } as ParticipantSummary);
 
@@ -189,6 +247,36 @@ export async function GET(request: Request) {
 
       participantMap.set(participantId, participantEntry);
     }
+  });
+
+  (allCompletions || []).forEach((completion) => {
+    const participantId = completion.participant_id as string | null;
+    if (!participantId) return;
+    const dayKey = formatDateKey(new Date(completion.completed_at as string));
+    const days = participantCompletionDays.get(participantId) || new Set<string>();
+    days.add(dayKey);
+    participantCompletionDays.set(participantId, days);
+  });
+
+  const yesterdayKey = addDaysToDateKey(todayKey, -1);
+
+  participantMap.forEach((participant, participantId) => {
+    const days = participantCompletionDays.get(participantId) || new Set<string>();
+    const hasToday = days.has(todayKey);
+    const hasYesterday = days.has(yesterdayKey);
+
+    if (!hasToday && !hasYesterday) {
+      participant.current_streak = 0;
+      return;
+    }
+
+    let streak = 0;
+    let cursorKey = hasToday ? todayKey : yesterdayKey;
+    while (days.has(cursorKey)) {
+      streak += 1;
+      cursorKey = addDaysToDateKey(cursorKey, -1);
+    }
+    participant.current_streak = streak;
   });
 
   const days = Array.from(dayMap.values()).map((day) => ({
@@ -214,7 +302,7 @@ export async function GET(request: Request) {
   return NextResponse.json({
     period,
     range: {
-      start: start.toISOString(),
+      start: queryStart.toISOString(),
       end: now.toISOString(),
     },
     total,

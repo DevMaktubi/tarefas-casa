@@ -33,6 +33,14 @@ export type SummaryParticipant = {
   id: string;
   name: string;
   count: number;
+  current_streak: number;
+  tasks: SummaryTask[];
+};
+
+export type SummaryDayParticipant = {
+  id: string;
+  name: string;
+  count: number;
   tasks: SummaryTask[];
 };
 
@@ -41,7 +49,7 @@ export type SummaryDay = {
   label: string;
   count: number;
   tasks: SummaryTask[];
-  participants: SummaryParticipant[];
+  participants: SummaryDayParticipant[];
 };
 
 export type SummaryResponse = {

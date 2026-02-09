@@ -17,7 +17,9 @@ export default function OverviewPage() {
   async function fetchSummary(period: 'weekly' | 'monthly') {
     setSummaryLoading(true);
     try {
-      const response = await fetch(`/api/summary?period=${period}`);
+      const response = await fetch(`/api/summary?period=${period}`, {
+        cache: 'no-store',
+      });
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data?.error || 'Falha ao carregar resumo.');
@@ -122,6 +124,11 @@ export default function OverviewPage() {
       },
     },
   };
+
+  const streakRanking = [...(summary?.participants ?? [])].sort(
+    (a, b) => b.current_streak - a.current_streak
+  );
+
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-10">
       <header className="flex flex-col gap-3">
@@ -219,36 +226,61 @@ export default function OverviewPage() {
         ) : (
           <div className="grid gap-6">
             {summaryPeriod !== 'monthly' ? (
-              <div className="grid gap-6 lg:grid-cols-2">
-                <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                  <p className="text-sm font-semibold text-slate-700">
-                    Total no periodo
-                  </p>
-                  <p className="text-3xl font-semibold text-slate-900">
-                    {summary.total}
-                  </p>
-                  <div className="mt-4 flex w-full items-center justify-center">
-                    <ApexChart
-                      type="donut"
-                      width="100%"
-                      height={260}
-                      series={donutSeries}
-                      options={donutOptions}
-                    />
+              <div className="grid gap-6">
+                <div className="grid gap-6 lg:grid-cols-2">
+                  <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                    <p className="text-sm font-semibold text-slate-700">
+                      Total no periodo
+                    </p>
+                    <p className="text-3xl font-semibold text-slate-900">
+                      {summary.total}
+                    </p>
+                    <div className="mt-4 flex w-full items-center justify-center">
+                      <ApexChart
+                        type="donut"
+                        width="100%"
+                        height={260}
+                        series={donutSeries}
+                        options={donutOptions}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                    <p className="text-sm font-semibold text-slate-700">
+                      Conclusoes por dia
+                    </p>
+                    <div className="mt-4 w-full">
+                      <ApexChart
+                        type="bar"
+                        width="100%"
+                        height={260}
+                        series={barSeries}
+                        options={barOptions}
+                      />
+                    </div>
                   </div>
                 </div>
-                <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
                   <p className="text-sm font-semibold text-slate-700">
-                    Conclusoes por dia
+                    Streak atual por participante
                   </p>
-                  <div className="mt-4 w-full">
-                    <ApexChart
-                      type="bar"
-                      width="100%"
-                      height={260}
-                      series={barSeries}
-                      options={barOptions}
-                    />
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    {streakRanking.map((participant) => (
+                      <div
+                        key={participant.id}
+                        className="rounded-xl border border-slate-200 bg-white px-4 py-3"
+                      >
+                        <p className="text-sm font-semibold text-slate-800">
+                          {participant.name}
+                        </p>
+                        <p className="text-2xl font-semibold text-slate-900">
+                          {participant.current_streak}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          dia(s) seguidos com ao menos 1 tarefa.
+                        </p>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -286,13 +318,28 @@ export default function OverviewPage() {
                       />
                     </div>
                   </div>
-                  <div className="rounded-2xl border border-dashed border-slate-200 bg-white/60 p-4">
+                  <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
                     <p className="text-sm font-semibold text-slate-700">
-                      Reservado
+                      Streak atual por participante
                     </p>
-                    <p className="text-xs text-slate-500">
-                      Espaco para uma nova visualizacao mensal.
-                    </p>
+                    <div className="mt-4 grid gap-3">
+                      {streakRanking.map((participant) => (
+                        <div
+                          key={participant.id}
+                          className="rounded-xl border border-slate-200 bg-white px-4 py-3"
+                        >
+                          <p className="text-sm font-semibold text-slate-800">
+                            {participant.name}
+                          </p>
+                          <p className="text-2xl font-semibold text-slate-900">
+                            {participant.current_streak}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            dia(s) seguidos com ao menos 1 tarefa.
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </>

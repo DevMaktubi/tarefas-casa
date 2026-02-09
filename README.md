@@ -11,6 +11,7 @@ Aplicacao simples para registrar tarefas recorrentes em casa, com historico de q
 - Recorrencia diaria/semanal/mensal com dias especificos
 - Filtros por tipo de recorrencia
 - Participantes armazenados no banco
+- Resumo com graficos e streak global por participante
 
 ## Stack
 
