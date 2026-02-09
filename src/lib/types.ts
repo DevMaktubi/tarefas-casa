@@ -1,3 +1,5 @@
+import type { ComponentType } from 'react';
+
 export type Task = {
   id: string;
   title: string;
@@ -15,4 +17,15 @@ export type TaskCompletion = {
 
 export type TaskWithLast = Task & {
   last_completion: Pick<TaskCompletion, 'completed_by' | 'completed_at'> | null;
+};
+
+export type SidebarItem = {
+  title: string;
+  href: string;
+  icon?: ComponentType<{ className?: string }>;
+};
+
+export type SidebarGroup = {
+  title: string;
+  items: SidebarItem[];
 };

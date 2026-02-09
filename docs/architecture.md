@@ -19,6 +19,7 @@
 - Uma pagina principal simples enquanto a V1 nao cresce.
 - Estados obrigatorios de loading, erro e vazio.
 - Conteudo em PT-BR.
+- Biblioteca padrao de icones: react-icons.
 
 ## Padroes de dados
 
